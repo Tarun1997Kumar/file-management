@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "React Client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173", // Vite's default port
+      "webRoot": "${workspaceFolder}/client",
+      "sourceMaps": true,
+      "runtimeArgs": ["--remote-debugging-port=9222"],
+      "preLaunchTask": "npm: dev"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Express Server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "cwd": "${workspaceFolder}\\server"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack Debug",
+      "configurations": ["React Client", "Express Server"]
+    }
+  ]
+}
