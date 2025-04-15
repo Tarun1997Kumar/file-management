@@ -77,7 +77,19 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchFolders = async () => {
-  const response = await api.get(`/file`);
-  return response.data.children.filter((item: FileItem) => item.is_folder);
+export const fetchFolders = async (currentParentId: string) => {
+  const response = await api.get(`/folder`);
+
+  const rootFolder = {
+    _id: null,
+    name: "root",
+    is_folder: true,
+  };
+  const folders = response.data?.folders;
+  let allFolders = [];
+  if (currentParentId) allFolders = [rootFolder, ...folders];
+  else allFolders = [folders];
+  return allFolders.filter(
+    (folder: FileItem) => folder._id !== currentParentId
+  );
 };

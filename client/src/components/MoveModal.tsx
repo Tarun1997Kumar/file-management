@@ -7,14 +7,20 @@ interface MoveModalProps {
   item: FileItem;
   onMove: (newParentId: string | null) => void;
   onClose: () => void;
+  currentParentId: string;
 }
 
-export function MoveModal({ item, onMove, onClose }: MoveModalProps) {
+export function MoveModal({
+  item,
+  onMove,
+  onClose,
+  currentParentId,
+}: MoveModalProps) {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["folders"],
-    queryFn: () => fetchFolders(), // Fetch only folders
+    queryFn: () => fetchFolders(currentParentId), // Fetch only folders
   });
 
   useEffect(() => {

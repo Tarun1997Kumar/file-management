@@ -13,10 +13,12 @@ export function File({
   item,
   onFolderClick,
   onRefresh,
+  parentId,
 }: {
   item: FileItem;
   onFolderClick: (folder: FileItem) => void;
   onRefresh: () => void;
+  parentId: string;
 }) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(item.name);
@@ -25,7 +27,7 @@ export function File({
 
   useEffect(() => {
     const abort = new AbortController();
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = () => {
       if (showActions) setShowActions(false);
     };
 
@@ -225,6 +227,7 @@ export function File({
       {isMoving && (
         <MoveModal
           item={item}
+          currentParentId={parentId}
           onMove={handleMove}
           onClose={() => setIsMoving(false)}
         />

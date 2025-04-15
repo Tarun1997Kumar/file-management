@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useMutation } from "@tanstack/react-query";
@@ -10,13 +10,7 @@ export function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login, user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      navigate("/file-dashboard");
-    }
-  }, [user, navigate]);
+  const { login } = useAuth();
 
   const signupMutation = useMutation({
     mutationFn: (data: { email: string; password: string }) => signupUser(data),

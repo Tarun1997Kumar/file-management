@@ -45,15 +45,15 @@ authRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const userRole = await Role.findOne({ name: "user" });
-    if (!userRole) {
-      res.status(500).json({ message: "Role configuration error" });
-      return;
-    }
-
     const user = await User.findOne({ email });
     if (!user) {
       res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
+    const role = await Role.findOne({ _id: user.role });
+    if (!role) {
+      res.status(500).json({ message: "Role configuration error" });
       return;
     }
 
@@ -63,11 +63,11 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    const token = generateToken(user._id.toString(), userRole.name);
+    const token = generateToken(user._id.toString(), role.name);
     res.status(201).json({
       token,
       userId: user._id,
-      role: userRole.name,
+      role: role.name,
     });
   } catch (error) {
     res.status(500).json({ message: "Login failed" });

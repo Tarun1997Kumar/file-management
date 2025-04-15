@@ -40,3 +40,8 @@ export function useAuth() {
   }
   return context;
 }
+
+export function useAdmin() {
+  const { user } = useAuth();
+  return user?.role === "admin"; // Ensure role is populated correctly
+}

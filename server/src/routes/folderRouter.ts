@@ -3,7 +3,22 @@ import File from "../models/file";
 import express, { Request, Response } from "express";
 import fs from "fs";
 import { authenticate } from "../middleware/authMiddleware";
+import mongoose from "mongoose";
 const folderRouter = express.Router();
+
+folderRouter.get("", authenticate, async (req: Request, res: Response) => {
+  const { userId } = req.body.user;
+  const query: any = { userId, is_folder: true };
+  try {
+    const folders = await File.find(query);
+    res.status(200).json({ folders });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching user folders",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
 
 folderRouter.post("/", authenticate, async (req: Request, res: Response) => {
   const { folderName, parentId } = req.body;

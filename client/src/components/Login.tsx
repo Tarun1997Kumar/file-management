@@ -14,7 +14,8 @@ export function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate("/file-dashboard");
+      if (user.role === "admin") navigate("/admin");
+      else navigate("/file-dashboard");
     }
   }, [user, navigate]);
 
@@ -22,12 +23,9 @@ export function Login() {
     mutationFn: (data: { email: string; password: string }) => loginUser(data),
     onSuccess: (data: User) => {
       login(data);
-      navigate(`/file-dashboard`);
     },
     onError: (error) => {
       console.error(error);
-      setEmail("");
-      setPassword("");
       setError("Invalid email or password");
     },
   });
