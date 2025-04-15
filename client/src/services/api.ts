@@ -1,6 +1,7 @@
 // src/services/api.ts
 import axios from "axios";
 import { CustomFileResponse, FileItem } from "../types/file";
+import { User } from "../types/user";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api", // Replace with your Express server port
@@ -43,7 +44,7 @@ export const renameItem = async (fileId: string, newName: string) => {
   return response.data;
 };
 
-export const moveItem = async (itemId: string, newParentId: string | null) => {
+export const moveFile = async (itemId: string, newParentId: string | null) => {
   const response = await api.put(`/file/${itemId}/move`, { newParentId });
   return response.data;
 };
@@ -92,4 +93,9 @@ export const fetchFolders = async (currentParentId: string) => {
   return allFolders.filter(
     (folder: FileItem) => folder._id !== currentParentId
   );
+};
+
+export const getAllUsers = async () => {
+  const response = api.get<User[]>("/auth/users");
+  return (await response).data;
 };

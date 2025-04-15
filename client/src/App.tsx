@@ -6,6 +6,8 @@ import { Login } from "./components/Login";
 import { Signup } from "./components/Signup";
 import { JSX } from "react";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function ProtectedRouter({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
@@ -54,6 +56,17 @@ function AppContent() {
           />
         </Routes>
       </main>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }
