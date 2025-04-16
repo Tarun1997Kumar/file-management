@@ -3,9 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadFile } from "../services/api";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { toast } from "react-toastify";
+import { AxiosError } from "axios";
 
 interface FileUploadProps {
   parentId?: string;
+}
+
+interface UploadErrorResponse {
+  message: string;
 }
 
 export function FileUpload({ parentId }: FileUploadProps) {
@@ -31,19 +36,25 @@ export function FileUpload({ parentId }: FileUploadProps) {
       toast.success("File uploaded successfully!");
       setUploadProgress(0);
     },
-    onError: () => {
-      toast.error("Failed to upload file");
+    onError: (error: AxiosError<UploadErrorResponse>) => {
+      toast.error(
+        `Failed to upload file: ${
+          error.response?.data?.message || "Unknown error"
+        }`
+      );
       setUploadProgress(0);
     },
   });
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
+    setUploadProgress(0);
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: DragEvent) => {
     e.preventDefault();
+    setUploadProgress(0);
     setIsDragging(false);
   };
 
@@ -53,6 +64,7 @@ export function FileUpload({ parentId }: FileUploadProps) {
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
+      setUploadProgress(0);
       uploadMutation.mutate(files[0]);
     }
   };
@@ -60,6 +72,7 @@ export function FileUpload({ parentId }: FileUploadProps) {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
+      setUploadProgress(0);
       uploadMutation.mutate(files[0]);
     }
   };
@@ -83,14 +96,14 @@ export function FileUpload({ parentId }: FileUploadProps) {
       >
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploadMutation.isLoading}
+          disabled={uploadMutation.isPending}
           className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-            uploadMutation.isLoading
+            uploadMutation.isPending
               ? "bg-gray-100 text-gray-500 cursor-not-allowed"
               : "bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           } transition-all duration-200`}
         >
-          {uploadMutation.isLoading ? (
+          {uploadMutation.isPending ? (
             <div className="flex items-center">
               <LoadingSpinner size="sm" color="gray" />
               <span className="ml-2">Uploading... {uploadProgress}%</span>
@@ -125,7 +138,7 @@ export function FileUpload({ parentId }: FileUploadProps) {
         )}
       </div>
 
-      {uploadMutation.isLoading && (
+      {uploadMutation.isPending && (
         <div className="absolute left-0 bottom-0 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-full bg-blue-600 transition-all duration-200"

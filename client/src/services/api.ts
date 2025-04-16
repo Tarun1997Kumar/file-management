@@ -14,9 +14,18 @@ export const getFiles = async (parentId?: string) => {
   return response.data;
 };
 
-export const uploadFile = async (formData: FormData) => {
+export const uploadFile = async (
+  formData: FormData,
+  onProgress?: (progress: number) => void
+) => {
   const response = await api.post("/file/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
+    onUploadProgress: (event) => {
+      if (onProgress && event.total) {
+        const percentCompleted = (event.loaded * 100) / event.total;
+        onProgress(percentCompleted);
+      }
+    },
   });
   return response.data;
 };

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/user";
+import User, { IUser } from "../models/user";
 import { generateToken } from "../util/jwt";
 import Role from "../models/role";
 
@@ -68,9 +68,37 @@ authRouter.post("/login", async (req, res) => {
       token,
       userId: user._id,
       role: role.name,
+      email: user.email,
     });
   } catch (error) {
     res.status(500).json({ message: "Login failed" });
+  }
+});
+
+authRouter.get("/users", async (req: Request, res: Response) => {
+  try {
+    const users: IUser[] = await User.find().populate("role", "email");
+    if (users.length === 0) {
+      res.status(404).json({ message: "No users found" });
+      return;
+    }
+    // Get the role name for each user
+    const usersWithRole = await Promise.all(
+      users.map(async (user) => {
+        const role = await Role.findById(user.role);
+        return {
+          ...user.toObject(),
+          role: role ? role.name : "unknown",
+        };
+      })
+    );
+    // Filter out the password field from the response
+    const usersWithoutPassword = usersWithRole.map(
+      ({ password, ...user }) => user
+    );
+    res.status(200).json(usersWithoutPassword);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users" });
   }
 });
 

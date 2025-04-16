@@ -89,13 +89,7 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   );
 }
 
-function EmptyState({
-  onCreateFolder,
-  onUploadFile,
-}: {
-  onCreateFolder: () => void;
-  onUploadFile: () => void;
-}) {
+function EmptyState() {
   return (
     <div className="px-6 py-12 text-center">
       <svg
@@ -118,48 +112,6 @@ function EmptyState({
       <p className="mt-1 text-sm text-gray-500">
         Get started by creating a new folder or uploading a file.
       </p>
-      <div className="mt-6 flex justify-center gap-3">
-        <button
-          onClick={onCreateFolder}
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-        >
-          <svg
-            className="mr-2 h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-            />
-          </svg>
-          New Folder
-        </button>
-        <button
-          onClick={onUploadFile}
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-        >
-          <svg
-            className="mr-2 h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-            />
-          </svg>
-          Upload File
-        </button>
-      </div>
     </div>
   );
 }
@@ -213,14 +165,32 @@ export function FileDashboard() {
               <FileUpload parentId={parentId} />
               <FolderCreate
                 parentId={parentId}
-                isOpen={false}
-                onClose={function (): void {
-                  throw new Error("Function not implemented.");
-                }}
+                isOpen={showFolderCreate}
+                onClose={() => setShowFolderCreate(false)}
               />
               <button
+                onClick={() => setShowFolderCreate(true)}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+              >
+                <svg
+                  className="mr-2 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                  />
+                </svg>
+                New Folder
+              </button>
+              <button
                 onClick={() => refetch()}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer"
               >
                 <svg
                   className="h-4 w-4"
@@ -281,10 +251,7 @@ export function FileDashboard() {
 
               <div className="divide-y divide-gray-100">
                 {files?.length === 0 ? (
-                  <EmptyState
-                    onCreateFolder={() => setShowFolderCreate(true)}
-                    onUploadFile={() => fileInputRef.current?.click()}
-                  />
+                  <EmptyState />
                 ) : (
                   <div className="animate-fadeIn">
                     {files?.map((item) => (

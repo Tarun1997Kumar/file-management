@@ -75,7 +75,7 @@ export function FolderCreate({ parentId, isOpen, onClose }: FolderCreateProps) {
                       type="text"
                       value={folderName}
                       onChange={(e) => setFolderName(e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-colors duration-200"
+                      className="block w-full rounded-md p-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-colors duration-200"
                       placeholder="Enter folder name"
                       disabled={createFolderMutation.isPending}
                     />

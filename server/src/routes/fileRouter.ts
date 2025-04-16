@@ -67,7 +67,7 @@ fileRouter.post(
   authenticate,
   async (req: Request, res: Response) => {
     if (!req.file) {
-      res.status(400).json("No file uploaded");
+      res.status(400).json({ message: "No file uploaded" });
       return;
     }
 
@@ -111,7 +111,7 @@ fileRouter.post(
       parentId: parentId,
     });
 
-    fs.writeFileSync(filePath, req.file.buffer);
+    await fs.promises.writeFile(filePath, req.file.buffer);
 
     try {
       await File.create(fileMetadata);
