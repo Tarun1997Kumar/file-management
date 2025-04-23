@@ -2,7 +2,6 @@ import { Navigate } from "react-router-dom";
 import { useAdmin } from "../AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "../../services/api";
-import { LoadingSpinner } from "../LoadingSpinner";
 import Sidebar from "../SideNavBar";
 
 function LoadingState() {

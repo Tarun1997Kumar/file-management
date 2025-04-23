@@ -5,7 +5,7 @@ import { BreadcrubItem, FileItem } from "../types/file";
 import { FileUpload } from "./FileUpload";
 import { FolderCreate } from "./FolderCreate";
 import { File } from "./File";
-import { Fragment, useState, useRef } from "react";
+import { Fragment, useState } from "react";
 import Sidebar from "./SideNavBar";
 
 function LoadingState() {
@@ -120,7 +120,6 @@ export function FileDashboard() {
   const { parentId } = useParams<{ parentId?: string }>();
   const navigate = useNavigate();
   const [showFolderCreate, setShowFolderCreate] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["files", parentId],
