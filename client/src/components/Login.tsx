@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAdmin, useAuth } from "./helper/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import { loginUser } from "../services/api";
 import { User } from "../types/user";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { LoadingSpinner } from "./helper/LoadingSpinner";
 import { toast } from "react-toastify";
+
+import { AxiosError } from "axios";
+import { ErrorResponse } from "../types/error";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login, user } = useAuth();
-
+  const isAdmin = useAdmin();
   useEffect(() => {
     if (user) {
-      if (user.role === "admin") navigate("/admin");
+      if (isAdmin) navigate("/admin");
       else navigate("/file-dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isAdmin]);
 
   const loginMutation = useMutation({
     mutationFn: (data: { email: string; password: string }) => loginUser(data),
@@ -27,15 +29,13 @@ export function Login() {
       login(data);
       toast.success("Welcome back!");
     },
-    onError: () => {
-      setError("Invalid email or password");
-      toast.error("Login failed. Please check your credentials.");
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error(error.response?.data.message);
     },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     loginMutation.mutate({ email, password });
   };
 
@@ -85,31 +85,6 @@ export function Login() {
               />
             </div>
           </div>
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div>
             <button
               type="submit"

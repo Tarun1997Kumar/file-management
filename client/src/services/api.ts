@@ -1,70 +1,18 @@
 // src/services/api.ts
 import axios from "axios";
-import { CustomFileResponse, FileItem } from "../types/file";
 import { User } from "../types/user";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api", // Replace with your Express server port
 });
 
-export const getFiles = async (parentId?: string) => {
-  const response = await api.get<CustomFileResponse>(
-    `/file${parentId ? `/${parentId}` : "/"}`
-  );
-  return response.data;
-};
-
-export const uploadFile = async (
-  formData: FormData,
-  onProgress?: (progress: number) => void
-) => {
-  const response = await api.post("/file/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-    onUploadProgress: (event) => {
-      if (onProgress && event.total) {
-        const percentCompleted = (event.loaded * 100) / event.total;
-        onProgress(percentCompleted);
-      }
-    },
-  });
-  return response.data;
-};
-
-export const createFolder = async (data: {
-  folderName: string;
-  parentId?: string;
-}) => {
-  const response = await api.post("/folder/", data);
-  return response.data;
-};
-
-export const deleteFile = async (fileId: string) => {
-  const response = await api.delete(`/file/${fileId}`);
-  return response.data;
-};
-
-export const deleteFolder = async (folderId: string) => {
-  const response = await api.delete(`/folder/${folderId}`);
-  return response.data;
-};
-
-export const renameItem = async (fileId: string, newName: string) => {
-  const response = await api.patch(`/file/${fileId}/rename`, { newName });
-  return response.data;
-};
-
-export const moveFile = async (itemId: string, newParentId: string | null) => {
-  const response = await api.put(`/file/${itemId}/move`, { newParentId });
-  return response.data;
-};
-
 export const loginUser = async (data: { email: string; password: string }) => {
-  const response = await api.post("/auth/login", data);
+  const response = await api.post<User>("/auth/login", data);
   return response.data;
 };
 
 export const signupUser = async (data: { email: string; password: string }) => {
-  const response = await api.post("/auth/register", data);
+  const response = await api.post<User>("/auth/register", data);
   return response.data;
 };
 
@@ -80,31 +28,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      window.dispatchEvent(new Event("unauthorized"));
     }
     return Promise.reject(error);
   }
 );
 
-export const fetchFolders = async (currentParentId: string) => {
-  const response = await api.get(`/folder`);
-
-  const rootFolder = {
-    _id: null,
-    name: "root",
-    is_folder: true,
-  };
-  const folders = response.data?.folders;
-  let allFolders = [];
-  if (currentParentId) allFolders = [rootFolder, ...folders];
-  else allFolders = [folders];
-  return allFolders.filter(
-    (folder: FileItem) => folder._id !== currentParentId
-  );
-};
-
-export const getAllUsers = async () => {
-  const response = api.get<User[]>("/auth/users");
-  return (await response).data;
-};
+export default api;

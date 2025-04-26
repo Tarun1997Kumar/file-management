@@ -1,8 +1,8 @@
 import { Fragment, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getFiles, moveFile } from "../services/api";
-import { FileItem } from "../types/file";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { getFiles, moveFile } from "../../services/fileApi";
+import { FileItem } from "../../types/file";
+import { LoadingSpinner } from "../helper/LoadingSpinner";
 import { toast } from "react-toastify";
 
 interface MoveModalProps {

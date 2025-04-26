@@ -1,5 +1,12 @@
-import { createContext, ReactNode, useContext, useState } from "react";
-import { User } from "../types/user";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { User } from "../../types/user";
 
 interface AuthContextType {
   user: User | null;
@@ -23,8 +30,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    window.location.href = "/login";
   };
+
+  const navigate = useNavigate(); // Now safe in the React tree
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+      navigate("/login");
+    };
+
+    window.addEventListener("unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("unauthorized", handleUnauthorized);
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
@@ -43,5 +61,5 @@ export function useAuth() {
 
 export function useAdmin() {
   const { user } = useAuth();
-  return user?.role === "admin"; // Ensure role is populated correctly
+  return user?.role.name === "master-admin"; // Ensure role is populated correctly
 }

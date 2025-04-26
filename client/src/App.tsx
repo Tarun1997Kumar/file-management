@@ -1,13 +1,19 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { TopNavBar } from "./components/TopNavBar";
-import { FileDashboard } from "./components/FileDashboard";
-import { AuthProvider, useAdmin, useAuth } from "./components/AuthContext";
+import { FileDashboard } from "./components/user/FileDashboard.tsx";
+import {
+  AuthProvider,
+  useAdmin,
+  useAuth,
+} from "./components/helper/AuthContext";
 import { Login } from "./components/Login";
 import { Signup } from "./components/Signup";
 import { JSX } from "react";
-import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { UserDashboard } from "./components/admin/components/UserDashboard.tsx";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import RolesDashboard from "./components/admin/components/role/RolesDashboard.tsx";
+import PermissionsDashBoard from "./components/admin/components/PermissionsDashBoard.tsx";
 
 function ProtectedRouter({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
@@ -40,7 +46,23 @@ function AppContent() {
             path="/admin"
             element={
               <AdminProtectedRoute>
-                <AdminDashboard />
+                <UserDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/roles"
+            element={
+              <AdminProtectedRoute>
+                <RolesDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/permissions"
+            element={
+              <AdminProtectedRoute>
+                <PermissionsDashBoard />
               </AdminProtectedRoute>
             }
           />
@@ -48,7 +70,11 @@ function AppContent() {
             path="*"
             element={
               user ? (
-                <Navigate to="/file-dashboard" />
+                user.role.name == "master-admin" ? (
+                  <Navigate to="/admin" />
+                ) : (
+                  <Navigate to="/file-dashboard" />
+                )
               ) : (
                 <Navigate to="/login" />
               )

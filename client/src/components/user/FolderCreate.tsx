@@ -1,8 +1,8 @@
 // src/components/FolderCreate.tsx
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFolder } from "../services/api";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { createFolder } from "../../services/folderApi";
+import { LoadingSpinner } from "../helper/LoadingSpinner";
 import { toast } from "react-toastify";
 
 interface FolderCreateProps {

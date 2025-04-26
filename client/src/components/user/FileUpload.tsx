@@ -1,16 +1,13 @@
 import { useRef, useState, DragEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadFile } from "../services/api";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { uploadFile } from "../../services/fileApi";
+import { LoadingSpinner } from "../helper/LoadingSpinner";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
+import { ErrorResponse } from "../../types/error";
 
 interface FileUploadProps {
   parentId?: string;
-}
-
-interface UploadErrorResponse {
-  message: string;
 }
 
 export function FileUpload({ parentId }: FileUploadProps) {
@@ -36,7 +33,7 @@ export function FileUpload({ parentId }: FileUploadProps) {
       toast.success("File uploaded successfully!");
       setUploadProgress(0);
     },
-    onError: (error: AxiosError<UploadErrorResponse>) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       toast.error(
         `Failed to upload file: ${
           error.response?.data?.message || "Unknown error"

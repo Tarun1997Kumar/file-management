@@ -1,15 +1,12 @@
 import { JSX, useEffect, useState } from "react";
-import { FileItem } from "../types/file";
+import { FileItem } from "../../types/file";
 import { useMutation } from "@tanstack/react-query";
-import {
-  deleteFile,
-  deleteFolder,
-  moveFile,
-  renameItem,
-} from "../services/api";
+import { deleteFile, renameItem } from "../../services/fileApi";
+import { deleteFolder } from "../../services/folderApi";
 import { MoveModal } from "./MoveModal";
-import { LoadingSpinner } from "./LoadingSpinner";
 import { toast } from "react-toastify";
+import { AxiosError } from "axios";
+import { ErrorResponse } from "../../types/error";
 
 interface FileProps {
   item: FileItem;
@@ -26,6 +23,7 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      e.stopPropagation();
       if (showActions) setShowActions(false);
     };
     document.addEventListener("click", handleClickOutside);
@@ -41,8 +39,12 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
       );
       onRefresh();
     },
-    onError: (error) => {
-      toast.error(`Error deleting ${item.is_folder ? "folder" : "file"}`);
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error(
+        `Error deleting ${item.is_folder ? "folder" : "file"}: "${
+          error.response?.data.message
+        }"`
+      );
       console.error(error);
     },
   });
@@ -53,20 +55,8 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
       toast.success("Renamed successfully");
       onRefresh();
     },
-    onError: (error) => {
-      toast.error("Error renaming item");
-      console.error(error);
-    },
-  });
-
-  const moveMutation = useMutation({
-    mutationFn: (newParentId: string | null) => moveFile(item._id, newParentId),
-    onSuccess: () => {
-      toast.success("Item moved successfully");
-      onRefresh();
-    },
-    onError: (error) => {
-      toast.error("Error moving item");
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error(`Error renaming item : ${error.response?.data.message}`);
       console.error(error);
     },
   });
@@ -284,12 +274,9 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
 
       {isMoving && (
         <MoveModal
-          item={item}
-          currentParentId={parentId}
-          onMove={(newParentId) => {
-            moveMutation.mutate(newParentId);
-            setIsMoving(false);
-          }}
+          isOpen={isMoving}
+          fileToMove={item}
+          currentFolderId={parentId}
           onClose={() => setIsMoving(false)}
         />
       )}

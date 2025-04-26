@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useAdmin, useAuth } from "./helper/AuthContext";
 
 export function TopNavBar() {
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  const isAdmin = useAdmin(); // Ensure role is populated correctly
   return (
     <nav className="bg-white shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +56,7 @@ export function TopNavBar() {
                       >
                         Sign out
                       </button>
-                      {user.role === "admin" && (
+                      {isAdmin && (
                         <a
                           href="/admin"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"

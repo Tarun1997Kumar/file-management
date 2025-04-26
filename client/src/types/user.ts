@@ -1,6 +1,9 @@
+import { Role } from "./role";
+
 export interface User {
   _id: string;
-  role: string;
-  token: string;
   email: string;
+  role: Role;
+  token?: string;
+  isActive: boolean;
 }
