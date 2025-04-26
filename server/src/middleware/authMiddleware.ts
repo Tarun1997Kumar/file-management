@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../util/jwt";
 import Role from "../models/role";
+import User from "../models/user";
 
 interface JwtPayload {
   userId: string;
@@ -21,7 +22,30 @@ export const authenticate = async (
     }
 
     const decoded = verifyToken(token) as JwtPayload;
+
+    if (!decoded) {
+      res.status(401).json({ message: "Invalid token" });
+      return;
+    }
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      res
+        .status(401)
+        .json({ message: "Your account does not exist or has been removed." });
+      return;
+    }
+
+    if (!user.isActive) {
+      res.status(403).json({
+        message: "Your account has been deactivated, please contact support.",
+      });
+      return;
+    }
+
     req.body = { ...req.body, user: decoded };
+
     next();
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });
@@ -29,27 +53,42 @@ export const authenticate = async (
   }
 };
 
-export const authorize = (permission: string) => {
+export const authorize = (permission?: string | string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userRole = req.body.user.role;
-      const role = await Role.findById(userRole).populate("permissions");
+
+      if (userRole === "master-admin") {
+        return next(); // master-admin can do everything
+      }
+
+      const role = await Role.findOne({ name: userRole })
+        .populate("permissions")
+        .lean();
 
       if (!role) {
-        return res.status(403).json({ message: "Role not found" });
+        res
+          .status(403)
+          .json({ message: "Role not found, please contact support." });
+        return;
       }
 
-      const hasPermission = role.permissions.some(
-        (perm: any) => perm.name === permission
-      );
+      const hasPermission = Array.isArray(permission)
+        ? role.permissions?.some((perm: any) => permission.includes(perm.name))
+        : role.permissions?.some((perm: any) => {
+            return perm.name === permission;
+          });
 
       if (!hasPermission) {
-        return res.status(403).json({ message: "Insufficient permissions" });
+        res.status(403).json({
+          message: "Insufficient permissions, please check your access rights.",
+        });
+        return;
       }
 
-      next();
+      next(); // Pass control to the next middleware or route handler
     } catch (error) {
-      return res.status(500).json({ message: "Authorization error" });
+      res.status(500).json({ message: "Authorization error" });
     }
   };
 };

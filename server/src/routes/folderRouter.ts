@@ -2,11 +2,11 @@ import path from "path";
 import File from "../models/file";
 import express, { Request, Response } from "express";
 import fs from "fs";
-import { authenticate } from "../middleware/authMiddleware";
+import { authenticate, authorize } from "../middleware/authMiddleware";
 import mongoose from "mongoose";
 const folderRouter = express.Router();
 
-folderRouter.get("", authenticate, async (req: Request, res: Response) => {
+folderRouter.get("", authenticate, authorize("file:read"), async (req, res) => {
   const { userId } = req.body.user;
   const query: any = { userId, is_folder: true };
   try {
@@ -20,62 +20,71 @@ folderRouter.get("", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-folderRouter.post("/", authenticate, async (req: Request, res: Response) => {
-  const { folderName, parentId } = req.body;
-  const { userId } = req.body.user;
-  if (!folderName || typeof folderName !== "string") {
-    res
-      .status(400)
-      .json({ message: "Folder name is required and must be a string" });
-    return;
-  }
-
-  const existingFolder = await File.findOne({
-    name: folderName,
-    parentId: parentId || null,
-    userId,
-    is_folder: true,
-  });
-  if (existingFolder) {
-    res.status(400).json({
-      message: `A folder named "${folderName}" already exists at this location`,
-    });
-    return;
-  }
-
-  try {
-    const parentFolder = await File.findOne({ _id: parentId, userId: userId });
-    const folderPath = parentFolder
-      ? path.posix.join(parentFolder.path, folderName)
-      : path.posix.join("root", userId, folderName);
-
-    const newFolder = new File({
-      name: folderName,
-      is_folder: true,
-      path: folderPath,
-      userId: userId,
-      type: "folder",
-      size: 0,
-      parentId: parentId,
-    });
-
-    // Ensure directory exists
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
+folderRouter.post(
+  "/",
+  authenticate,
+  authorize(["file:write", "file:fullaccess"]),
+  async (req, res) => {
+    const { folderName, parentId } = req.body;
+    const { userId } = req.body.user;
+    if (!folderName || typeof folderName !== "string") {
+      res
+        .status(400)
+        .json({ message: "Folder name is required and must be a string" });
+      return;
     }
 
-    await File.create(newFolder);
-    res.status(201).json({ message: `${folderName} created successfully` });
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: `${folderName} creating file: ${error.message}` });
+    const existingFolder = await File.findOne({
+      name: folderName,
+      parentId: parentId || null,
+      userId,
+      is_folder: true,
+    });
+    if (existingFolder) {
+      res.status(400).json({
+        message: `A folder named "${folderName}" already exists at this location`,
+      });
+      return;
+    }
+
+    try {
+      const parentFolder = await File.findOne({
+        _id: parentId,
+        userId: userId,
+      });
+      const folderPath = parentFolder
+        ? path.posix.join(parentFolder.path, folderName)
+        : path.posix.join("root", userId, folderName);
+
+      const newFolder = new File({
+        name: folderName,
+        is_folder: true,
+        path: folderPath,
+        userId: userId,
+        type: "folder",
+        size: 0,
+        parentId: parentId,
+      });
+
+      // Ensure directory exists
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true });
+      }
+
+      await File.create(newFolder);
+      res.status(201).json({ message: `${folderName} created successfully` });
+    } catch (error: any) {
+      res
+        .status(500)
+        .json({ message: `${folderName} creating file: ${error.message}` });
+    }
   }
-});
+);
 
 folderRouter.delete(
   "/:folderId",
   authenticate,
+  authorize(["file:delete", "file:fullaccess"]),
   async (req: Request, res: Response) => {
     try {
       const folderId = req.params.folderId;

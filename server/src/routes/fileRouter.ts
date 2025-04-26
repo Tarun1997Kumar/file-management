@@ -4,7 +4,7 @@ import multerDBStore from "../config/multer";
 import path from "path";
 import mongoose from "mongoose";
 import fs from "fs";
-import { authenticate } from "../middleware/authMiddleware";
+import { authenticate, authorize } from "../middleware/authMiddleware";
 
 const fileRouter = express.Router();
 
@@ -12,7 +12,7 @@ fileRouter.use(authenticate);
 
 fileRouter.get(
   "/:parentId?",
-  authenticate,
+  authorize(["file:read", "file:fullaccess"]),
   async (req: Request, res: Response) => {
     const { userId } = req.body.user;
     const parentId = req.params.parentId as string | undefined;
@@ -63,8 +63,15 @@ fileRouter.get(
 
 fileRouter.post(
   "/upload",
-  multerDBStore.single("file"),
-  authenticate,
+  authorize(["file:upload", "file:fullaccess"]),
+  (req, res, next) => {
+    const user = req.body.user;
+    multerDBStore.single("file")(req, res, (err) => {
+      if (err) return next(err);
+      req.body.user = user;
+      next();
+    });
+  },
   async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
@@ -125,36 +132,40 @@ fileRouter.post(
   }
 );
 
-fileRouter.delete("/:fileId", authenticate, async (req, res) => {
-  try {
-    const file = await File.findById(req.params.fileId);
-    if (!file || file.is_folder) {
-      res.status(404).json({ message: "File/Folder not found" });
-      return;
-    }
-
-    // Delete physical file from disk
-    if (fs.existsSync(file.path)) {
-      try {
-        fs.unlinkSync(file.path);
-      } catch (err) {
-        console.error(`Failed to delete file: ${file.path}`, err);
+fileRouter.delete(
+  "/:fileId",
+  authorize(["file:delete", "file:fullaccess"]),
+  async (req, res) => {
+    try {
+      const file = await File.findById(req.params.fileId);
+      if (!file || file.is_folder) {
+        res.status(404).json({ message: "File/Folder not found" });
+        return;
       }
-    }
 
-    await File.findByIdAndDelete(req.params.fileId);
-    res.status(200).json({ message: "File deleted successfully" });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error deleting file",
-      error: error instanceof Error ? error.message : String(error),
-    });
+      // Delete physical file from disk
+      if (fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.error(`Failed to delete file: ${file.path}`, err);
+        }
+      }
+
+      await File.findByIdAndDelete(req.params.fileId);
+      res.status(200).json({ message: "File deleted successfully" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error deleting file",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
-});
+);
 
 fileRouter.patch(
   "/:fileId/rename",
-  authenticate,
+  authorize(["file:rename", "file:fullaccess"]),
   async (req: Request, res: Response) => {
     try {
       const { fileId } = req.params;
@@ -214,7 +225,7 @@ fileRouter.patch(
 
 fileRouter.put(
   "/:fileId/move",
-  authenticate,
+  authorize(["file:move", "file:fullaccess"]),
   async (req: Request, res: Response) => {
     try {
       const newParentId = req.body.newParentId;
@@ -327,16 +338,22 @@ fileRouter.put(
   }
 );
 
-fileRouter.get("/download/:filePath", async (req: Request, res: Response) => {
-  try {
-    const filePath = decodeURIComponent(req.params.filePath);
-    res.download(filePath, (err) => {
-      if (err) {
-        res.status(500).json({ message: "Error downloading file", error: err });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error downloading file", error });
+fileRouter.get(
+  "/download/:filePath",
+  authorize(["file:download", "file:fullaccess"]),
+  async (req, res) => {
+    try {
+      const filePath = decodeURIComponent(req.params.filePath);
+      res.download(filePath, (err) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ message: "Error downloading file", error: err });
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error downloading file", error });
+    }
   }
-});
+);
 export default fileRouter;

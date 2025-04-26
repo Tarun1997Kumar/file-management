@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface IPermission extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
 }

@@ -31,10 +31,16 @@ authRouter.post("/register", async (req: Request, res: Response) => {
       password: hashedPassword,
       role: userRole._id,
     });
+    const { password: _, ...userWithoutPassword } = user.toObject();
 
     const token = generateToken(user._id.toString(), userRole.name);
-
-    res.status(201).json({ token, userId: user._id, role: userRole.name });
+    res.status(200).json({
+      _id: user._id,
+      email: user.email,
+      role: { name: userRole.name },
+      token: token,
+      isActive: user.isActive,
+    });
   } catch (error) {
     res.status(500).json({ message: "Registration failed" });
     console.error(error);
@@ -53,7 +59,9 @@ authRouter.post("/login", async (req, res) => {
 
     const role = await Role.findOne({ _id: user.role });
     if (!role) {
-      res.status(500).json({ message: "Role configuration error" });
+      res
+        .status(500)
+        .json({ message: "Role configuration error, please contact support." });
       return;
     }
 
@@ -63,42 +71,25 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    const token = generateToken(user._id.toString(), role.name);
-    res.status(201).json({
-      token,
-      userId: user._id,
-      role: role.name,
-      email: user.email,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Login failed" });
-  }
-});
-
-authRouter.get("/users", async (req: Request, res: Response) => {
-  try {
-    const users: IUser[] = await User.find().populate("role", "email");
-    if (users.length === 0) {
-      res.status(404).json({ message: "No users found" });
+    if (!user.isActive) {
+      res
+        .status(403)
+        .json({ message: "User is not active, please contact support." });
       return;
     }
-    // Get the role name for each user
-    const usersWithRole = await Promise.all(
-      users.map(async (user) => {
-        const role = await Role.findById(user.role);
-        return {
-          ...user.toObject(),
-          role: role ? role.name : "unknown",
-        };
-      })
-    );
-    // Filter out the password field from the response
-    const usersWithoutPassword = usersWithRole.map(
-      ({ password, ...user }) => user
-    );
-    res.status(200).json(usersWithoutPassword);
+
+    // Remove password from user object before sending response
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    const token = generateToken(user._id.toString(), role.name);
+    res.status(200).json({
+      _id: user._id,
+      email: user.email,
+      role: { name: role.name },
+      token: token,
+      isActive: user.isActive,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching users" });
+    res.status(500).json({ message: "Login failed " });
   }
 });
 

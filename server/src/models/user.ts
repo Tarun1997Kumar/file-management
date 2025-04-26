@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: { type: mongoose.Types.ObjectId; ref: "Role"; required: true };
+  isActive: boolean;
 }
 
 const UserSchema: Schema = new Schema({
@@ -19,6 +20,7 @@ const UserSchema: Schema = new Schema({
       return await Role.findOne({ name: "user" });
     },
   },
+  isActive: { type: Boolean, default: true },
 });
 
 const User = mongoose.model<IUser>("User", UserSchema);

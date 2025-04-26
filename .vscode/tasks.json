@@ -5,7 +5,15 @@
       "type": "npm",
       "script": "dev",
       "path": "client/",
-      "problemMatcher": [],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "background": {
+          "beginsPattern": "VITE .* starting",
+          "endsPattern": "VITE .* ready in .* ms"
+        }
+      },
       "label": "npm: dev",
       "detail": "vite"
     }
