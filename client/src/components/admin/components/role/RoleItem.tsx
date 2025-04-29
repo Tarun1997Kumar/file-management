@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Role } from "../../../../types/role";
 import { AssignPermissions } from "./AssignPermissions";
-import { toast } from "react-toastify";
 
 export default function RoleItem({
   role,
@@ -14,9 +13,6 @@ export default function RoleItem({
 }) {
   const [isAssignPermissionModalOpen, setIsAssignPermissionModalOpen] =
     useState(false);
-  const closeAssignPermissionModal = () => {
-    setIsAssignPermissionModalOpen(false);
-  };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
@@ -25,16 +21,14 @@ export default function RoleItem({
           <div className="flex items-center space-x-2">
             <h3 className="text-lg font-medium text-gray-900">{role.name}</h3>
             {role.permissions.length > 0 &&
-              role.permissions.map((permission) => {
+              role.permissions.map((permission, index) => {
                 return (
-                  <>
-                    <div
-                      key={permission._id}
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 ml-1`}
-                    >
-                      <span className="mr-2">{permission.name}</span>
-                    </div>
-                  </>
+                  <div
+                    key={index}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 ml-1`}
+                  >
+                    <span className="mr-2">{permission.name}</span>
+                  </div>
                 );
               })}
           </div>
@@ -47,8 +41,8 @@ export default function RoleItem({
             >
               <button
                 onClick={() => {
-                  // setIsAssignPermissionModalOpen(true)
-                  toast.error("assigning permissions feature coming soon!");
+                  setIsAssignPermissionModalOpen(true); // error causing the modal to open infinte loop
+                  // toast.error("assigning permissions feature coming soon!");
                 }}
                 className="text-blue-500 hover:text-blue-700 cursor-pointer p-1 border-darker rounded-md"
                 title="Assign permission"

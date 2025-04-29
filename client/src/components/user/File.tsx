@@ -1,7 +1,7 @@
 import { JSX, useEffect, useState } from "react";
 import { FileItem } from "../../types/file";
 import { useMutation } from "@tanstack/react-query";
-import { deleteFile, renameItem } from "../../services/fileApi";
+import { deleteFile, downloadFile, renameItem } from "../../services/fileApi";
 import { deleteFolder } from "../../services/folderApi";
 import { MoveModal } from "./MoveModal";
 import { toast } from "react-toastify";
@@ -79,6 +79,18 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
       deleteMutation.mutate();
     }
   };
+
+  const downloadMutation = useMutation({
+    mutationFn: downloadFile,
+    onSuccess: () => {
+      toast.success(`downloaded ${item.name} successfully.`);
+      onRefresh();
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error(`Error downloading file : ${error.response?.data.message}`);
+      console.error(error);
+    },
+  });
 
   const getFileIcon = () => {
     if (item.is_folder) {
@@ -267,6 +279,30 @@ export function File({ item, onFolderClick, onRefresh, parentId }: FileProps) {
               }
               label="Delete"
               className="text-red-600 hover:text-red-700"
+            />
+
+            <ActionButton
+              onClick={() => {
+                downloadMutation.mutate(item.path);
+              }}
+              icon={
+                <svg
+                  className="h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                  />
+                </svg>
+              }
+              label="Download"
+              className="text-blue-600 hover:text-blue-700"
             />
           </div>
         )}

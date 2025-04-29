@@ -339,12 +339,14 @@ fileRouter.put(
 );
 
 fileRouter.get(
-  "/download/:filePath",
+  "/download",
   authorize(["file:download", "file:fullaccess"]),
   async (req, res) => {
     try {
-      const filePath = decodeURIComponent(req.params.filePath);
-      res.download(filePath, (err) => {
+      const filePath = decodeURIComponent(req.query.filePath as string);
+      const absolutePath = path.join(__dirname, "../../", filePath);
+
+      res.download(absolutePath, (err) => {
         if (err) {
           res
             .status(500)

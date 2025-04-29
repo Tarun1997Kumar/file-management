@@ -13,7 +13,7 @@ import RoleItem from "./RoleItem";
 export default function RolesDashboard() {
   const [isCreateRoleModalOpen, setIsCreateRoleModalOpen] = useState(false);
 
-  const openCreateRoleModal = () => setIsCreateRoleModalOpen(true);
+  // const openCreateRoleModal = () => setIsCreateRoleModalOpen(true);
   const closeCreaeRoleModal = () => {
     setIsCreateRoleModalOpen(false);
     refetch();
@@ -51,26 +51,37 @@ export default function RolesDashboard() {
     <div className="flex h-screen">
       <Sidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-7xl mx-auto animate-slideIn">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-6">Roles</h1>
-
-          <button
-            onClick={openCreateRoleModal}
-            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            Create Role
-          </button>
-
+        <div className="max-w-7xl mx-auto animate-slideIn  ">
+          <div className="flex justify-between">
+            <div className="flex">
+              <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+                Roles
+              </h1>
+            </div>
+            <div className="flex">
+              <button
+                onClick={() => {
+                  toast.info("Role creation feature will be avaiable soon.", {
+                    position: "top-right",
+                  });
+                  // openCreateRoleModal();
+                }}
+                className="mb-4 px-4 py-2  bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+              >
+                Create Role
+              </button>
+            </div>
+          </div>
           {isLoading ? (
             <LoadingState />
           ) : (
             <div className="grid gap-4">
               {roles?.map((role) => (
                 <RoleItem
-                  role={role}
-                  onDelete={deleteRoleMutation.mutate}
-                  onRefresh={refetch}
                   key={role._id}
+                  role={role}
+                  onDelete={() => deleteRoleMutation.mutate(role._id)}
+                  onRefresh={refetch}
                 />
               ))}
             </div>

@@ -4,6 +4,7 @@ import { Role } from "../types/role";
 export const getRoles = async () => {
   const response = api.get<Role[]>("/admin/roles");
   const roles = (await response).data;
+  console.log(roles);
   return roles;
 };
 
